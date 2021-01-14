@@ -23,14 +23,27 @@ let coreJsApi = {
 };
 
 function handler(jsApi) {
-    return function(obj, prop) {
-        if (prop in jsApi) {
-            let subProps = jsApi[prop];
-            if (subProps) {
-                return new Proxy(obj[prop], handler(subProps));
+    return {
+        get: function(obj, prop) {
+            if (prop in jsApi) {
+                let subProps = jsApi[prop];
+                if (subProps) {
+                    return new Proxy(obj[prop], handler(subProps));
+                } else {
+                    return obj[prop];
+                }
+            } else if (prop in obj) {
+                return obj[prop];
             }
+            return undefined;
+        },
+        set: function(obj, prop, value) {
+            if (prop in jsApi) {
+                throw TypeError('Cannot set property of built-in coreJs object !!');
+            }
+            obj[prop] = value;
+            return true;
         }
-        return undefined;
     };
 }
 
